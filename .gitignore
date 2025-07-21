@@ -1,0 +1,40 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+
+# Cache
+.cache/
+.next/
+.vite/
+out/
+.temp/
+*.tsbuildinfo
+
+# VS Code
+.vscode/
+
+# OS-specific
+*.swp
+*.swo
+.idea/
+
+# Coverage reports
+coverage/
+
+# Optional: Firebase / other secrets
+firebase-debug.log
+.firebaserc
