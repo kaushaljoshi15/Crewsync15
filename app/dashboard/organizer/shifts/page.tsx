@@ -21,6 +21,13 @@ interface ShiftDoc {
   status?: string;
 }
 
+type Volunteer = {
+  id: string;
+  shiftId: string;
+  userId: string;
+  // ...other fields as needed
+};
+
 export default function OrganizerShiftsPage() {
   const { user } = useAuth();
   const [eventFilter, setEventFilter] = useState("");
@@ -114,9 +121,9 @@ export default function OrganizerShiftsPage() {
     setAssignShift(shift);
     // Fetch volunteers assigned to the event
     const vSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", shift.eventId)));
-    const volunteers = vSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const volunteers: Volunteer[] = vSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Volunteer));
     setEventVolunteers(volunteers);
-    setAssignedVolunteers(volunteers.filter(v => v.shiftId === shift.id).map(v => v.userId));
+    setAssignedVolunteers(volunteers.filter(v => (v as Volunteer).shiftId === shift.id).map(v => (v as Volunteer).userId));
     // Optionally fetch user info for display
     const usersSnap = await getDocs(collection(db, "users"));
     const usersMap: Record<string, any> = {};
