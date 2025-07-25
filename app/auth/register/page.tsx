@@ -150,7 +150,7 @@ export default function RegisterPage() {
             })
             toast.success(`Role updated to ${role}.`)
           } else {
-            toast.success('Google Sign-Up successful!')
+        toast.success('Google Sign-Up successful!')
           }
         }
         if (role === 'volunteer') {
@@ -160,7 +160,7 @@ export default function RegisterPage() {
         } else if (role === 'admin') {
           router.push('/dashboard/admin')
         } else {
-          router.push('/dashboard')
+        router.push('/dashboard')
         }
       } else {
         // Check for specific Google auth errors
@@ -323,17 +323,17 @@ export default function RegisterPage() {
 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">I am a...</label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
                 className="input w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-4 py-2"
-              >
-                <option value="volunteer">Volunteer</option>
-                <option value="organizer">Event Organizer</option>
-                <option value="admin">Admin</option>
-              </select>
+                >
+                  <option value="volunteer">Volunteer</option>
+                  <option value="organizer">Event Organizer</option>
+                  <option value="admin">Admin</option>
+                </select>
             </div>
 
             <div className="flex items-center">

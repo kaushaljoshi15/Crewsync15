@@ -107,7 +107,7 @@ export default function LoginPage() {
         } else if (role === 'admin') {
           router.push('/dashboard/admin')
         } else {
-          router.push('/dashboard')
+        router.push('/dashboard')
         }
       } else {
         // Check for specific Google auth errors

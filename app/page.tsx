@@ -1,19 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, Users, Clock, CheckCircle, ArrowRight, Star } from 'lucide-react'
+import { Calendar, Users, Clock, CheckCircle, ArrowRight, Star, Moon, Sun } from 'lucide-react'
 import Link from 'next/link'
+import { useTheme } from '@/components/ThemeProvider'
 
 export default function HomePage() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
-    document.documentElement.classList.toggle('dark')
-  }
+  const { theme, toggleTheme } = useTheme()
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen">
       {/* Header */}
       {/* Remove: <Header /> */}
 

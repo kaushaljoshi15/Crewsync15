@@ -241,7 +241,7 @@ export default function VolunteerDashboardPage() {
             >
               <div className="p-3 bg-white/20 rounded-xl shadow-lg flex items-center justify-center">
                 <Calendar className="h-7 w-7 text-white group-hover:scale-110 transition-transform" />
-              </div>
+                </div>
               <div>
                 <h4 className="font-semibold text-white text-lg">View Shifts</h4>
                 <p className="text-sm text-primary-100">Check your schedule</p>
@@ -258,7 +258,7 @@ export default function VolunteerDashboardPage() {
                     {unreadNotifCount}
                   </span>
                 )}
-              </div>
+                </div>
               <div>
                 <h4 className="font-semibold text-white text-lg">Notifications</h4>
                 <p className="text-sm text-indigo-100">View updates</p>
@@ -270,7 +270,7 @@ export default function VolunteerDashboardPage() {
             >
               <div className="p-3 bg-white/20 rounded-xl shadow-lg flex items-center justify-center">
                 <User className="h-7 w-7 text-white group-hover:scale-110 transition-transform" />
-              </div>
+                </div>
               <div>
                 <h4 className="font-semibold text-white text-lg">Update Availability</h4>
                 <p className="text-sm text-yellow-100">Mark your status</p>
