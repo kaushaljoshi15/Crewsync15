@@ -200,7 +200,7 @@ export default function Header() {
                 <X className="h-7 w-7" />
               </button>
             </div>
-            <nav className="flex flex-col gap-4">
+            <nav className="flex flex-col gap-4 flex-grow">
               {user && (
                 <div className="mb-6 border-b border-gray-200 dark:border-slate-700 pb-4">
                   <div className="flex items-center gap-3">
@@ -289,6 +289,21 @@ export default function Header() {
                 </>
               )}
             </nav>
+            {/* Mobile Theme Toggle Button */}
+            {user || pathname === '/' ? (
+              <button
+                onClick={toggleTheme}
+                className="mt-8 w-full flex items-center justify-center gap-2 p-3 rounded-full bg-white/80 dark:bg-slate-800/80 shadow hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-base font-semibold"
+                aria-label="Toggle dark mode"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5 text-yellow-400" />
+                ) : (
+                  <Moon className="h-5 w-5 text-gray-700" />
+                )}
+                <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+            ) : null}
           </div>
         )}
       </div>
