@@ -33,6 +33,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore'
 import { Event, Volunteer } from '@/lib/types'
 import { useRouter } from 'next/navigation'
 import { Dialog } from '@headlessui/react'
+import { formatTimeRange } from '@/lib/utils'
 
 // Mock data for volunteer dashboard
 const mockShifts = [
@@ -473,7 +474,32 @@ export default function VolunteerDashboardPage() {
                   <div className="space-y-3">
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                       <Clock className="h-4 w-4 mr-2" />
-                      {shift.startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {shift.endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {(() => {
+                        const formatTime = (timeValue: any) => {
+                          if (!timeValue) return '--';
+                          if (timeValue instanceof Date) {
+                            return timeValue.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                          }
+                          if (typeof timeValue === 'string') {
+                            // Handle string time formats like "14:30" or "2:30 PM"
+                            if (timeValue.includes(':')) {
+                              return timeValue;
+                            }
+                            // Try to parse as date string
+                            const date = new Date(timeValue);
+                            if (!isNaN(date.getTime())) {
+                              return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            }
+                          }
+                          if (timeValue?.toDate) {
+                            // Handle Firestore Timestamp
+                            return timeValue.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                          }
+                          return '--';
+                        };
+                        
+                        return formatTimeRange(shift.startTime, shift.endTime);
+                      })()}
                     </div>
                     
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">

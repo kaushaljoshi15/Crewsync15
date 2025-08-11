@@ -32,6 +32,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Dialog } from '@headlessui/react';
 import { useRouter } from 'next/navigation';
+import { formatTimeRange } from '@/lib/utils';
 
 // Mock data for organizer dashboard
 const mockEvents = [
@@ -392,7 +393,7 @@ export default function OrganizerDashboardPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900 dark:text-white">
-                            {shift.startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {shift.endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            {formatTimeRange(shift.startTime, shift.endTime)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

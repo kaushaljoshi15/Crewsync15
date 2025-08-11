@@ -123,30 +123,52 @@ export default function OrganizerShiftsPage() {
     const vSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", shift.eventId)));
     const volunteers: Volunteer[] = vSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Volunteer));
     setEventVolunteers(volunteers);
-    setAssignedVolunteers(volunteers.filter(v => (v as Volunteer).shiftId === shift.id).map(v => (v as Volunteer).userId));
+    
+    // Get volunteers already assigned to this specific shift
+    const shiftAssignedVolunteers = volunteers.filter(v => (v as Volunteer).shiftId === shift.id).map(v => (v as Volunteer).userId);
+    setAssignedVolunteers(shiftAssignedVolunteers);
+    
+    // Get volunteers assigned to the event but not to this shift (available for assignment)
+    const availableVolunteers = volunteers.filter(v => !v.shiftId || v.shiftId === "");
+    
     // Optionally fetch user info for display
     const usersSnap = await getDocs(collection(db, "users"));
     const usersMap: Record<string, any> = {};
     usersSnap.forEach(userDoc => { usersMap[userDoc.id] = userDoc.data(); });
-    setAllVolunteers(volunteers.map(v => ({ ...v, ...usersMap[v.userId] })));
+    
+    // Set available volunteers (those assigned to event but not to any shift)
+    setAllVolunteers(availableVolunteers.map(v => ({ ...v, ...usersMap[v.userId] })));
     setShowAssignModal(true);
   };
   const handleToggleVolunteer = async (userId: string) => {
     if (!assignShift) return;
     const alreadyAssigned = assignedVolunteers.includes(userId);
+    
     if (alreadyAssigned) {
       // Unassign: update volunteer doc to remove shiftId
       const vDoc = eventVolunteers.find(v => v.userId === userId && v.shiftId === assignShift.id);
       if (vDoc) {
         await updateDoc(doc(db, "volunteers", vDoc.id), { shiftId: "" });
         setAssignedVolunteers(assignedVolunteers.filter(id => id !== userId));
+        
+        // Add back to available volunteers list
+        setAllVolunteers(prev => [...prev, vDoc]);
       }
     } else {
-      // Assign: update volunteer doc to set shiftId
+      // Check if volunteer is already assigned to another shift
       const vDoc = eventVolunteers.find(v => v.userId === userId);
+      if (vDoc && vDoc.shiftId && vDoc.shiftId !== "") {
+        alert("This volunteer is already assigned to another shift.");
+        return;
+      }
+      
+      // Assign: update volunteer doc to set shiftId
       if (vDoc) {
         await updateDoc(doc(db, "volunteers", vDoc.id), { shiftId: assignShift.id });
         setAssignedVolunteers([...assignedVolunteers, userId]);
+        
+        // Remove from available volunteers list
+        setAllVolunteers(prev => prev.filter(v => v.userId !== userId));
       }
     }
   };
@@ -300,7 +322,11 @@ export default function OrganizerShiftsPage() {
             <Dialog.Title className="text-xl font-bold mb-4 text-green-700 flex items-center gap-2"><UserPlus className="h-6 w-6" /> Assign Volunteers</Dialog.Title>
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {allVolunteers.length === 0 ? (
-                <div className="text-gray-500">No volunteers assigned to this event.</div>
+                <div className="text-gray-500">
+                  {assignedVolunteers.length > 0 
+                    ? "All volunteers assigned to this event are already assigned to shifts." 
+                    : "No volunteers assigned to this event."}
+                </div>
               ) : allVolunteers.map(v => (
                 <label key={v.userId} className="flex items-center gap-3 p-2 rounded hover:bg-green-50 dark:hover:bg-green-900 cursor-pointer">
                   <input

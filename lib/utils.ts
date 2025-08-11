@@ -32,6 +32,39 @@ export function formatDuration(startTime: Date, endTime: Date): string {
   return `${start} - ${end}`
 }
 
+export function formatTimeSafe(timeValue: any): string {
+  if (!timeValue) return '--';
+  
+  if (timeValue instanceof Date) {
+    return format(timeValue, "h:mm a");
+  }
+  
+  if (typeof timeValue === 'string') {
+    // Handle string time formats like "14:30" or "2:30 PM"
+    if (timeValue.includes(':')) {
+      return timeValue;
+    }
+    // Try to parse as date string
+    const date = new Date(timeValue);
+    if (!isNaN(date.getTime())) {
+      return format(date, "h:mm a");
+    }
+  }
+  
+  if (timeValue?.toDate) {
+    // Handle Firestore Timestamp
+    return format(timeValue.toDate(), "h:mm a");
+  }
+  
+  return '--';
+}
+
+export function formatTimeRange(startTime: any, endTime: any): string {
+  const start = formatTimeSafe(startTime);
+  const end = formatTimeSafe(endTime);
+  return `${start} - ${end}`;
+}
+
 export function getStatusColor(status: string): string {
   switch (status) {
     case 'active':

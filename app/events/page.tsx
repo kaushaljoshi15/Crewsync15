@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { doc, collection, addDoc, updateDoc, deleteDoc, getDocs, getDoc } from 'firebase/firestore'
+import { doc, collection, addDoc, updateDoc, deleteDoc, getDocs, getDoc, query, where, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
@@ -220,22 +220,40 @@ export default function EventsPage() {
   }
 
   const handleAssignUser = async (eventId: string, userId: string, role: 'organizer' | 'volunteer') => {
-    // Optimistic update - immediately update UI
-    const field = role === 'organizer' ? 'organizers' : 'volunteers'
+    // Check if user is already assigned to this event
     const eventIndex = events.findIndex(e => e.id === eventId)
+    if (eventIndex === -1) return
     
-    if (eventIndex !== -1) {
-      const updatedEvents = [...events]
-      const currentUsers = updatedEvents[eventIndex][field] || []
-      
-      if (!currentUsers.includes(userId)) {
-        updatedEvents[eventIndex] = {
-          ...updatedEvents[eventIndex],
-          [field]: [...currentUsers, userId]
+    const field = role === 'organizer' ? 'organizers' : 'volunteers'
+    const currentUsers = events[eventIndex][field] || []
+    
+    if (currentUsers.includes(userId)) {
+      toast.error(`User is already assigned as ${role} to this event`)
+      return
+    }
+    
+    // For volunteers, also check if they're already assigned in the volunteers collection
+    if (role === 'volunteer') {
+      try {
+        const volunteerSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", eventId), where("userId", "==", userId)))
+        if (!volunteerSnap.empty) {
+          toast.error("This volunteer is already assigned to this event")
+          return
         }
-        setEvents(updatedEvents)
+      } catch (error) {
+        console.error('Error checking volunteer assignment:', error)
+        toast.error('Failed to check volunteer assignment')
+        return
       }
     }
+    
+    // Optimistic update - immediately update UI
+    const updatedEvents = [...events]
+    updatedEvents[eventIndex] = {
+      ...updatedEvents[eventIndex],
+      [field]: [...currentUsers, userId]
+    }
+    setEvents(updatedEvents)
 
     try {
       const eventRef = doc(db, 'events', eventId)
@@ -245,12 +263,22 @@ export default function EventsPage() {
         const eventData = eventDoc.data() as Event
         const currentUsers = eventData[field] || []
         
-        if (!currentUsers.includes(userId)) {
-          await updateDoc(eventRef, {
-            [field]: [...currentUsers, userId]
+        await updateDoc(eventRef, {
+          [field]: [...currentUsers, userId]
+        })
+        
+        // If assigning as volunteer, also add to volunteers collection
+        if (role === 'volunteer') {
+          await addDoc(collection(db, "volunteers"), {
+            eventId: eventId,
+            userId: userId,
+            shiftId: "",
+            status: "assigned",
+            assignedAt: Timestamp.now()
           })
-          toast.success(`User assigned as ${role}`)
         }
+        
+        toast.success(`User assigned as ${role}`)
       }
     } catch (error) {
       // Revert optimistic update on error
@@ -286,6 +314,20 @@ export default function EventsPage() {
         await updateDoc(eventRef, {
           [field]: currentUsers.filter(id => id !== userId)
         })
+        
+        // If removing a volunteer, also remove from volunteers collection
+        if (role === 'volunteer') {
+          try {
+            const volunteerSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", eventId), where("userId", "==", userId)))
+            volunteerSnap.forEach(async (volunteerDoc) => {
+              await deleteDoc(doc(db, "volunteers", volunteerDoc.id))
+            })
+          } catch (error) {
+            console.error('Error removing volunteer from collection:', error)
+            // Don't fail the entire operation if this fails
+          }
+        }
+        
         toast.success(`User removed as ${role}`)
       }
     } catch (error) {
