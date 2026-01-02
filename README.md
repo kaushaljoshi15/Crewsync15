@@ -34,8 +34,8 @@ A modern web application for efficiently managing student volunteers across sess
 - **Forms**: React Hook Form with Zod validation
 - **Notifications**: React Hot Toast
 - **Date Handling**: date-fns
-- **Backend**: Firebase (Firestore, Authentication)
-- **Deployment**: Vercel (frontend), Firebase Hosting
+- **Backend**: Custom database and authentication system
+- **Deployment**: Vercel (recommended)
 
 ## 🎨 Design System
 
@@ -64,12 +64,9 @@ Full dark mode support with carefully selected colors for both light and dark th
 3. **Set up environment variables**
    Create a `.env.local` file in the root directory:
    ```env
-   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   # Add your database and authentication configuration here
+   # DATABASE_URL=your_database_url
+   # AUTH_SECRET=your_auth_secret
    ```
 
 4. **Run the development server**
@@ -95,7 +92,7 @@ crewsync/
 │   └── page.tsx          # Landing page
 ├── components/            # Reusable components
 ├── lib/                  # Utility functions and types
-│   ├── firebase.ts       # Firebase configuration
+│   ├── auth.ts           # Authentication utilities
 │   ├── types.ts          # TypeScript interfaces
 │   └── utils.ts          # Utility functions
 ├── public/               # Static assets
@@ -123,11 +120,9 @@ Fully responsive design that works seamlessly on:
 2. Set up environment variables in Vercel dashboard
 3. Deploy automatically on push to main branch
 
-### Firebase Hosting
+### Other Hosting Options
 1. Build the project: `npm run build`
-2. Install Firebase CLI: `npm install -g firebase-tools`
-3. Initialize Firebase: `firebase init`
-4. Deploy: `firebase deploy`
+2. Deploy the `out` or `.next` directory to your preferred hosting service
 
 ## 🧪 Testing
 
@@ -173,7 +168,7 @@ If you encounter any issues or have questions:
 - Next.js team for the amazing framework
 - Tailwind CSS for the utility-first CSS framework
 - Lucide for the beautiful icons
-- Firebase for the backend services
+- All contributors and open-source libraries that made this project possible
 
 ---
 

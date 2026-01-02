@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { X, User } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -23,13 +21,10 @@ export default function UpdateAvailabilityPage() {
     if (!user) return;
     setIsLoading(true);
     const fetchPreferences = async () => {
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setAvailability(data.availability ?? 0);
-        setPreferredShift(data.preferredShift ?? "Any");
-        setPreferredRole(data.preferredRole ?? "");
-      }
+      // TODO: Fetch user preferences from your own database
+      setAvailability(0);
+      setPreferredShift("Any");
+      setPreferredRole("");
       setIsLoading(false);
     };
     fetchPreferences();
@@ -38,11 +33,7 @@ export default function UpdateAvailabilityPage() {
   const handleSave = async () => {
     if (!user) return;
     setIsSaving(true);
-    await updateDoc(doc(db, "users", user.uid), {
-      availability,
-      preferredShift,
-      preferredRole,
-    });
+    // TODO: Update user preferences in your own database
     setIsSaving(false);
     router.push("/dashboard/volunteer");
   };

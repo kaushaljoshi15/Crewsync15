@@ -6,8 +6,6 @@ import Link from 'next/link'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { signInWithEmail, signInWithGoogle } from '@/lib/auth'
-import { db } from '@/lib/firebase'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -40,14 +38,8 @@ export default function LoginPage() {
       const { user, error } = await signInWithEmail(email, password)
       
       if (user) {
-        // Fetch user role from Firestore if not present
+        // User role should be fetched from your own database
         let role = (user as any).role;
-        if (!role) {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            role = userDoc.data().role;
-          }
-        }
         toast.success('Login successful!')
         if (role === 'volunteer') {
           router.push('/dashboard/volunteer');
@@ -59,7 +51,7 @@ export default function LoginPage() {
           router.push('/dashboard');
         }
       } else {
-        // Check for specific Firebase auth errors
+        // Check for specific authentication errors
         if (error?.includes('user-not-found') || error?.includes('no user record')) {
           toast.error('Account not found. Please create a new account first.')
         } else if (error?.includes('wrong-password') || error?.includes('invalid-credential')) {
@@ -88,17 +80,8 @@ export default function LoginPage() {
     try {
       const { user, error } = await signInWithGoogle()
       if (user) {
-        // Check if user exists in Firestore
-        const userDocRef = doc(db, 'users', user.uid)
-        const userDocSnap = await getDoc(userDocRef)
+        // User should be checked in your own database
         let role = undefined
-        if (!userDocSnap.exists()) {
-          toast.error('This is your first time signing in with Google. Please use Sign Up instead.')
-          setIsLoading(false)
-          return
-        } else {
-          role = userDocSnap.data().role
-        }
         toast.success('Google Sign-In successful!')
         if (role === 'volunteer') {
           router.push('/dashboard/volunteer')

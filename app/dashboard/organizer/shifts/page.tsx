@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from '@/components/AuthProvider';
 import { Dialog } from '@headlessui/react';
@@ -57,23 +55,11 @@ export default function OrganizerShiftsPage() {
     if (!user) return;
     setLoading(true);
     // Fetch events for this organizer
-    getDocs(query(collection(db, "events"), where("createdBy", "==", user.uid))).then(eventSnap => {
-      const eventList = eventSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setEvents(eventList);
-      // Fetch shifts for these events
-      const eventIds = eventList.map(e => e.id);
-      if (eventIds.length === 0) {
-        setShifts([]);
-        setLoading(false);
-        return;
-      }
-      getDocs(collection(db, "shifts")).then(shiftSnap => {
-        const shiftList = shiftSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as ShiftDoc) }));
-        // Only include shifts for organizer's events
-        setShifts(shiftList.filter(s => s.eventId && eventIds.includes(s.eventId)));
-        setLoading(false);
-      });
-    });
+    // TODO: Fetch events from your own database
+    // TODO: Fetch shifts from your own database
+    setEvents([]);
+    setShifts([]);
+    setLoading(false);
   }, [user]);
 
   const openCreateModal = () => {
@@ -100,18 +86,14 @@ export default function OrganizerShiftsPage() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoadingAction(true);
-    if (editShift) {
-      await updateDoc(doc(db, "shifts", editShift.id), form);
-    } else {
-      await addDoc(collection(db, "shifts"), form);
-    }
+    // TODO: Save or update shift in your own database
     setShowModal(false);
     setLoadingAction(false);
   };
   const handleDelete = async () => {
     if (!deleteId) return;
     setLoadingAction(true);
-    await deleteDoc(doc(db, "shifts", deleteId));
+    // TODO: Delete shift from your own database
     setShowDeleteModal(false);
     setDeleteId(null);
     setLoadingAction(false);
@@ -119,22 +101,19 @@ export default function OrganizerShiftsPage() {
 
   const openAssignModal = async (shift: any) => {
     setAssignShift(shift);
-    // Fetch volunteers assigned to the event
-    const vSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", shift.eventId)));
-    const volunteers: Volunteer[] = vSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Volunteer));
+    // TODO: Fetch volunteers assigned to the event from your own database
+    const volunteers: Volunteer[] = [];
     setEventVolunteers(volunteers);
     
-    // Get volunteers already assigned to this specific shift
-    const shiftAssignedVolunteers = volunteers.filter(v => (v as Volunteer).shiftId === shift.id).map(v => (v as Volunteer).userId);
+    // TODO: Get volunteers already assigned to this specific shift from your own database
+    const shiftAssignedVolunteers: string[] = [];
     setAssignedVolunteers(shiftAssignedVolunteers);
     
-    // Get volunteers assigned to the event but not to this shift (available for assignment)
-    const availableVolunteers = volunteers.filter(v => !v.shiftId || v.shiftId === "");
+    // TODO: Get volunteers assigned to the event but not to this shift from your own database
+    const availableVolunteers: Volunteer[] = [];
     
-    // Optionally fetch user info for display
-    const usersSnap = await getDocs(collection(db, "users"));
+    // TODO: Fetch user info from your own database
     const usersMap: Record<string, any> = {};
-    usersSnap.forEach(userDoc => { usersMap[userDoc.id] = userDoc.data(); });
     
     // Set available volunteers (those assigned to event but not to any shift)
     setAllVolunteers(availableVolunteers.map(v => ({ ...v, ...usersMap[v.userId] })));
@@ -148,7 +127,7 @@ export default function OrganizerShiftsPage() {
       // Unassign: update volunteer doc to remove shiftId
       const vDoc = eventVolunteers.find(v => v.userId === userId && v.shiftId === assignShift.id);
       if (vDoc) {
-        await updateDoc(doc(db, "volunteers", vDoc.id), { shiftId: "" });
+        // TODO: Unassign volunteer from shift in your own database
         setAssignedVolunteers(assignedVolunteers.filter(id => id !== userId));
         
         // Add back to available volunteers list
@@ -164,7 +143,7 @@ export default function OrganizerShiftsPage() {
       
       // Assign: update volunteer doc to set shiftId
       if (vDoc) {
-        await updateDoc(doc(db, "volunteers", vDoc.id), { shiftId: assignShift.id });
+        // TODO: Assign volunteer to shift in your own database
         setAssignedVolunteers([...assignedVolunteers, userId]);
         
         // Remove from available volunteers list

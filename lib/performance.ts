@@ -1,68 +1,27 @@
-// Performance monitoring utilities
+// Performance monitoring utilities - replace with your own performance tracking system
+
 export const performance = {
   // Track page load performance
   trackPageLoad: (pageName: string) => {
+    // TODO: Implement page load tracking with your own analytics system
     if (typeof window !== 'undefined') {
-      try {
-        // Dynamic import to avoid SSR issues
-        import('firebase/performance').then(({ getPerformance, trace }) => {
-          const perf = getPerformance()
-          const pageLoadTrace = trace(perf, `page_load_${pageName}`)
-          pageLoadTrace.start()
-          
-          // Stop trace when page is fully loaded
-          window.addEventListener('load', () => {
-            pageLoadTrace.stop()
-          })
-        }).catch((error) => {
-          console.log('Performance tracking not available:', error)
-        })
-      } catch (error) {
-        console.log('Performance tracking not available:', error)
-      }
+      console.log(`[Performance] Page load: ${pageName}`)
     }
   },
 
   // Track custom events
   trackEvent: (eventName: string, attributes?: Record<string, string>) => {
+    // TODO: Implement event tracking with your own analytics system
     if (typeof window !== 'undefined') {
-      try {
-        // Dynamic import to avoid SSR issues
-        import('firebase/performance').then(({ getPerformance, trace }) => {
-          const perf = getPerformance()
-          const eventTrace = trace(perf, eventName)
-          
-          if (attributes) {
-            Object.entries(attributes).forEach(([key, value]) => {
-              eventTrace.putAttribute(key, value)
-            })
-          }
-          
-          eventTrace.start()
-        }).catch((error) => {
-          console.log('Performance tracking not available:', error)
-        })
-      } catch (error) {
-        console.log('Performance tracking not available:', error)
-      }
+      console.log(`[Performance] Event: ${eventName}`, attributes)
     }
   },
 
   // Track API calls
   trackApiCall: (apiName: string) => {
+    // TODO: Implement API call tracking with your own analytics system
     if (typeof window !== 'undefined') {
-      try {
-        // Dynamic import to avoid SSR issues
-        import('firebase/performance').then(({ getPerformance, trace }) => {
-          const perf = getPerformance()
-          const apiTrace = trace(perf, `api_call_${apiName}`)
-          apiTrace.start()
-        }).catch((error) => {
-          console.log('Performance tracking not available:', error)
-        })
-      } catch (error) {
-        console.log('Performance tracking not available:', error)
-      }
+      console.log(`[Performance] API call: ${apiName}`)
     }
   },
 
@@ -70,7 +29,7 @@ export const performance = {
   trackAuthEvent: (eventType: 'login' | 'logout' | 'signup') => {
     performance.trackEvent(`auth_${eventType}`, {
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent
+      userAgent: typeof window !== 'undefined' ? navigator.userAgent : ''
     })
   },
 
@@ -82,4 +41,4 @@ export const performance = {
   }
 }
 
-export default performance 
+export default performance

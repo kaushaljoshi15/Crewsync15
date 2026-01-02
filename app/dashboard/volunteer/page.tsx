@@ -28,8 +28,6 @@ import {
 import Link from 'next/link'
 import { useAuth } from '@/components/AuthProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { db } from '@/lib/firebase'
-import { collection, query, where, getDocs } from 'firebase/firestore'
 import { Event, Volunteer } from '@/lib/types'
 import { useRouter } from 'next/navigation'
 import { Dialog } from '@headlessui/react'
@@ -98,91 +96,23 @@ export default function VolunteerDashboardPage() {
   useEffect(() => {
     if (!user) return;
     setIsLoading(true);
-    // Fetch available events (active & public)
+    // TODO: Fetch available events from your own database
     const fetchAvailableEvents = async () => {
-      const q = query(collection(db, 'events'), where('status', '==', 'active'));
-      const snapshot = await getDocs(q);
-      const events: Event[] = snapshot.docs
-        .map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            title: data.title || '',
-            description: data.description || '',
-            date: data.date ? new Date(data.date.seconds ? data.date.seconds * 1000 : data.date) : new Date(),
-            location: data.location || '',
-            organizerId: data.organizerId || '',
-            organizerName: data.organizerName || '',
-            status: data.status || 'draft',
-            createdAt: data.createdAt ? new Date(data.createdAt.seconds ? data.createdAt.seconds * 1000 : data.createdAt) : new Date(),
-            updatedAt: data.updatedAt ? new Date(data.updatedAt.seconds ? data.updatedAt.seconds * 1000 : data.updatedAt) : new Date(),
-            ...data
-          } as Event;
-        })
-        // Optionally filter for public events if you have a 'public' field
-        .filter((event: any) => event.public !== false);
-      setAvailableEvents(events);
+      // TODO: Implement with your own database
+      setAvailableEvents([]);
     };
-    // Fetch joined events for this volunteer
+    // TODO: Fetch joined events for this volunteer from your own database
     const fetchJoinedEvents = async () => {
-      const vq = query(collection(db, 'volunteers'), where('userId', '==', user.uid));
-      const vSnap = await getDocs(vq);
-      const eventIds = vSnap.docs.map(doc => doc.data().eventId);
-      if (eventIds.length === 0) {
-        setJoinedEvents([]);
-        return;
-      }
-      // Fetch event details for joined events
-      const joined: Event[] = [];
-      for (const eventId of eventIds) {
-        const eventDoc = await getDocs(query(collection(db, 'events'), where('__name__', '==', eventId)));
-        eventDoc.forEach(doc => {
-          const data = doc.data();
-          joined.push({
-            id: doc.id,
-            title: data.title || '',
-            description: data.description || '',
-            date: data.date ? new Date(data.date.seconds ? data.date.seconds * 1000 : data.date) : new Date(),
-            location: data.location || '',
-            organizerId: data.organizerId || '',
-            organizerName: data.organizerName || '',
-            status: data.status || 'draft',
-            createdAt: data.createdAt ? new Date(data.createdAt.seconds ? data.createdAt.seconds * 1000 : data.createdAt) : new Date(),
-            updatedAt: data.updatedAt ? new Date(data.updatedAt.seconds ? data.updatedAt.seconds * 1000 : data.updatedAt) : new Date(),
-            ...data
-          } as Event);
-        });
-      }
-      setJoinedEvents(joined);
+      // TODO: Implement with your own database
+      setJoinedEvents([]);
     };
-    // Fetch real-time stats for volunteer
+    // TODO: Fetch real-time stats for volunteer from your own database
     const fetchStats = async () => {
-      // Fetch all shifts assigned to this volunteer
-      const shiftQ = query(collection(db, 'shifts'), where('assignedVolunteers', 'array-contains', user.uid));
-      const shiftSnap = await getDocs(shiftQ);
-      const shiftList: any[] = shiftSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setTotalShifts(shiftList.length);
-      // Completed shifts: status === 'completed'
-      setCompletedShifts(shiftList.filter(s => (s as any).status === 'completed').length);
-      // Hours volunteered: sum of (endTime - startTime) in hours
-      let hours = 0;
-      shiftList.forEach(s => {
-        const startTime = (s as any).startTime;
-        const endTime = (s as any).endTime;
-        if (startTime && endTime) {
-          const start = typeof startTime === 'string' ? new Date(startTime) : startTime.toDate ? startTime.toDate() : startTime;
-          const end = typeof endTime === 'string' ? new Date(endTime) : endTime.toDate ? endTime.toDate() : endTime;
-          hours += (end - start) / (1000 * 60 * 60);
-        }
-      });
-      setHoursVolunteered(Math.round(hours));
-      // Fetch satisfactionScore from user doc if available
-      const userDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', user.uid)));
-      let score = 0;
-      userDoc.forEach(doc => {
-        score = doc.data().satisfactionScore ?? 0;
-      });
-      setSatisfactionScore(score);
+      // TODO: Implement with your own database
+      setTotalShifts(0);
+      setCompletedShifts(0);
+      setHoursVolunteered(0);
+      setSatisfactionScore(0);
     };
     fetchStats();
     fetchAvailableEvents();
@@ -192,15 +122,10 @@ export default function VolunteerDashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    // Fetch unread notifications for this user and global
+    // TODO: Fetch unread notifications from your own database
     const fetchUnreadNotifications = async () => {
-      const userQ = query(collection(db, 'notifications'), where('userId', '==', user.uid), where('read', '==', false));
-      const globalQ = query(collection(db, 'notifications'), where('userId', '==', 'all'), where('read', '==', false));
-      const [userSnap, globalSnap] = await Promise.all([
-        getDocs(userQ),
-        getDocs(globalQ),
-      ]);
-      setUnreadNotifCount(userSnap.size + globalSnap.size);
+      // TODO: Implement with your own database
+      setUnreadNotifCount(0);
     };
     fetchUnreadNotifications();
   }, [user]);

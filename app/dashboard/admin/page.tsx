@@ -30,8 +30,6 @@ import {
 import Link from 'next/link'
 import { useAuth } from '@/components/AuthProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 
 // Mock data for admin dashboard
 const mockSystemStats = {
@@ -109,26 +107,19 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     let releaseSession = async () => {}
     if (user && user.email === ADMIN_EMAIL) {
-      const sessionRef = doc(db, 'adminSession', 'main')
-      getDoc(sessionRef).then(async (snap) => {
-        if (snap.exists() && snap.data().active) {
-          setSessionDenied(true)
-        } else {
-          await setDoc(sessionRef, { active: true, email: user.email, timestamp: Date.now() })
-          setSessionChecked(true)
-          // Release session on unload
-          releaseSession = async () => {
-            await setDoc(sessionRef, { active: false, email: '', timestamp: Date.now() })
-          }
-          window.addEventListener('beforeunload', releaseSession)
-        }
+      // TODO: Check admin session in your own database
+      setSessionChecked(true)
+      releaseSession = async () => {
+        // TODO: Release session in your own database
+      }
+      window.addEventListener('beforeunload', releaseSession)
       })
     }
     return () => {
       window.removeEventListener('beforeunload', releaseSession)
       // Optionally release session on unmount
       if (user && user.email === ADMIN_EMAIL && sessionChecked && !sessionDenied) {
-        setDoc(doc(db, 'adminSession', 'main'), { active: false, email: '', timestamp: Date.now() })
+        // TODO: Release session in your own database
       }
     }
   }, [user])
@@ -152,24 +143,11 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       setIsLoading(true)
-      const usersSnap = await getDocs(collection(db, 'users'))
-      const eventsSnap = await getDocs(collection(db, 'events'))
-      const shiftsSnap = await getDocs(collection(db, 'shifts'))
+      // TODO: Fetch stats from your own database
       let organizers = 0
-      usersSnap.forEach(doc => {
-        const data = doc.data()
-        if (data.role === 'organizer') organizers++
-      })
       let reportsCount = 0
-      try {
-        const reportsSnap = await getDocs(collection(db, 'reports'))
-        setReports(reportsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
-        reportsCount = reportsSnap.size
-      } catch {}
-      try {
-        const commsSnap = await getDocs(collection(db, 'communications'))
-        setCommunications(commsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
-      } catch {}
+      setReports([])
+      setCommunications([])
       setSystemStats(prev => ({
         ...prev,
         totalUsers: usersSnap.size,

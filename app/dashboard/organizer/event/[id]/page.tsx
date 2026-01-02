@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { Users, BarChart3, Download, Mail, ArrowLeft } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import jsPDF from "jspdf";
@@ -29,27 +27,12 @@ export default function OrganizerEventDetailsPage() {
     if (!id) return;
     const fetchEventAndVolunteers = async () => {
       setLoading(true);
-      // Fetch event
-      const docRef = doc(db, "events", id as string);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setEvent({ id: docSnap.id, ...docSnap.data() });
-      }
-      // Fetch volunteers for this event
-      const vQuery = query(collection(db, "volunteers"), where("eventId", "==", id));
-      const vSnap = await getDocs(vQuery);
-      const volunteerDocs = vSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as VolunteerDoc) }));
-      // Fetch user info for each volunteer
-      const userIds = volunteerDocs.map(v => v.userId).filter(Boolean);
+      // TODO: Fetch event from your own database
+      setEvent(null);
+      // TODO: Fetch volunteers for this event from your own database
+      const volunteerDocs: VolunteerDoc[] = [];
+      // TODO: Fetch user info from your own database
       let usersMap: Record<string, any> = {};
-      if (userIds.length > 0) {
-        const usersSnap = await getDocs(collection(db, "users"));
-        usersSnap.forEach(userDoc => {
-          if (userIds.includes(userDoc.id)) {
-            usersMap[userDoc.id] = userDoc.data();
-          }
-        });
-      }
       // Merge volunteer and user info
       const volunteersWithUser = volunteerDocs.map(v => ({
         name: usersMap[v.userId]?.name || v.userId || "-",

@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
-import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot, addDoc, Timestamp, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Edit, Trash2, Plus, Calendar, MapPin, FileText, Users, Clock, Eye, UserPlus, X, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Dialog } from '@headlessui/react';
-import { getDocs } from 'firebase/firestore';
 import { Listbox } from '@headlessui/react';
 
 const ROLES = ["Registration", "Food", "Crowd Control", "Help Desk"];
@@ -40,22 +37,15 @@ export default function OrganizerEventPage() {
   const [allVolunteers, setAllVolunteers] = useState<any[]>([]);
   const [maxVolunteers, setMaxVolunteers] = useState(1);
 
-  // Fetch events created by this organizer
+  // Fetch events created by this organizer - implement with your own database
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, "events"), where("createdBy", "==", user.uid));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setEvents(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-      setLoading(false);
-    });
-    return () => unsub();
+    // TODO: Fetch events from your own database
+    setLoading(false);
   }, [user]);
 
   useEffect(() => {
-    // Fetch all volunteers for the multi-select
-    getDocs(query(collection(db, "users"), where("role", "==", "volunteer"))).then(usersSnap => {
-      setAllVolunteers(usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
+    // TODO: Fetch all volunteers from your own database
   }, []);
 
   const handleFormChange = (e: any) => {
@@ -80,24 +70,13 @@ export default function OrganizerEventPage() {
 
   const handleEventVolunteersChange = (selected: string[]) => {
     setEventVolunteers(selected);
-    // Optionally, update Firestore here to save event-level volunteers
+    // TODO: Update your own database to save event-level volunteers
   };
 
   const handleCreateEvent = async (e: any) => {
     e.preventDefault();
     if (!user) return;
-    await addDoc(collection(db, "events"), {
-      title: form.title,
-      description: form.description,
-      date: form.date,
-      time: form.time,
-      location: form.location,
-      roles: form.roles,
-      maxVolunteers: form.maxVolunteers,
-      createdBy: user.uid,
-      status: "active",
-      createdAt: Timestamp.now(),
-    });
+    // TODO: Save event to your own database
     setForm({
       title: "",
       description: "",
@@ -150,15 +129,7 @@ export default function OrganizerEventPage() {
     e.preventDefault();
     if (!editEvent) return;
     setEditLoading(true);
-    await updateDoc(doc(db, "events", editEvent.id), {
-      title: editForm.title,
-      description: editForm.description,
-      date: editForm.date,
-      time: editForm.time,
-      location: editForm.location,
-      roles: editForm.roles,
-      maxVolunteers: editForm.maxVolunteers,
-    });
+    // TODO: Update event in your own database
     setShowEditModal(false);
     setEditEvent(null);
     setEditLoading(false);
@@ -166,48 +137,23 @@ export default function OrganizerEventPage() {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    await deleteDoc(doc(db, "events", deleteId));
+    // TODO: Delete event from your own database
     setDeleteId(null);
     setConfirmDelete(false);
   };
 
   const openAssignModal = async (event: any) => {
     setAssignEvent(event);
-    // Fetch all volunteers
-    const usersSnap = await getDocs(query(collection(db, "users"), where("role", "==", "volunteer")));
-    const users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    // Fetch volunteers already assigned to this event
-    const vSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", event.id)));
-    const assignedVolunteerIds = vSnap.docs.map(v => v.data().userId);
-    setEventVolunteers(assignedVolunteerIds);
-    
-    // Filter out volunteers who are already assigned to this event
-    const availableVolunteers = users.filter(user => !assignedVolunteerIds.includes(user.id));
-    setAllVolunteers(availableVolunteers);
+    // TODO: Fetch all volunteers from your own database
+    // TODO: Fetch volunteers already assigned to this event from your own database
     setShowAssignModal(true);
   };
 
   const handleToggleVolunteer = async (userId: string) => {
     if (!assignEvent) return;
     
-    // Check if volunteer is already assigned to this event
-    const vSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", assignEvent.id), where("userId", "==", userId)));
-    
-    if (!vSnap.empty) {
-      // Volunteer is already assigned to this event
-      alert("This volunteer is already assigned to this event.");
-      return;
-    }
-    
-    // Assign: add volunteer doc for this event/user
-    await addDoc(collection(db, "volunteers"), { 
-      eventId: assignEvent.id, 
-      userId, 
-      shiftId: "",
-      status: "assigned",
-      assignedAt: Timestamp.now()
-    });
+    // TODO: Check if volunteer is already assigned to this event in your own database
+    // TODO: Assign volunteer to event in your own database
     setEventVolunteers([...eventVolunteers, userId]);
     
     // Remove from available volunteers list
@@ -228,42 +174,9 @@ export default function OrganizerEventPage() {
     if (!assignEvent) return;
     
     try {
-      // Fetch all volunteer assignments for this event
-      const vSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", assignEvent.id)));
-      const volunteers = vSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Group by userId to find duplicates
-      const volunteerGroups = volunteers.reduce((groups: Record<string, any[]>, volunteer: any) => {
-        const userId = volunteer.userId;
-        if (!groups[userId]) {
-          groups[userId] = [];
-        }
-        groups[userId].push(volunteer);
-        return groups;
-      }, {});
-      
-      let duplicatesRemoved = 0;
-      
-      // Remove duplicates, keeping only the first assignment
-      for (const [userId, assignments] of Object.entries(volunteerGroups)) {
-        if (assignments.length > 1) {
-          // Keep the first assignment, delete the rest
-          const [keepAssignment, ...duplicateAssignments] = assignments;
-          
-          for (const duplicate of duplicateAssignments) {
-            await deleteDoc(doc(db, "volunteers", duplicate.id));
-            duplicatesRemoved++;
-          }
-        }
-      }
-      
-      if (duplicatesRemoved > 0) {
-        alert(`Removed ${duplicatesRemoved} duplicate assignments.`);
-        // Refresh the volunteer list
-        openAssignModal(assignEvent);
-      } else {
-        alert("No duplicate assignments found.");
-      }
+      // TODO: Fetch all volunteer assignments for this event from your own database
+      // TODO: Remove duplicates in your own database
+      alert("No duplicate assignments found.");
     } catch (error) {
       console.error('Error removing duplicates:', error);
       alert('Failed to remove duplicate assignments.');
@@ -274,48 +187,9 @@ export default function OrganizerEventPage() {
     if (!user) return;
     
     try {
-      // Fetch all events for this organizer
-      const eventSnap = await getDocs(query(collection(db, "events"), where("createdBy", "==", user.uid)));
-      const eventList = eventSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      let totalDuplicatesRemoved = 0;
-      
-      for (const event of eventList) {
-        // Fetch all volunteer assignments for this event
-        const vSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", event.id)));
-        const volunteers = vSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Group by userId to find duplicates
-        const volunteerGroups = volunteers.reduce((groups: Record<string, any[]>, volunteer: any) => {
-          const userId = volunteer.userId;
-          if (!groups[userId]) {
-            groups[userId] = [];
-          }
-          groups[userId].push(volunteer);
-          return groups;
-        }, {});
-        
-        // Remove duplicates, keeping only the first assignment
-        for (const [userId, assignments] of Object.entries(volunteerGroups)) {
-          if (assignments.length > 1) {
-            // Keep the first assignment, delete the rest
-            const [keepAssignment, ...duplicateAssignments] = assignments;
-            
-            for (const duplicate of duplicateAssignments) {
-              await deleteDoc(doc(db, "volunteers", duplicate.id));
-              totalDuplicatesRemoved++;
-            }
-          }
-        }
-      }
-      
-      if (totalDuplicatesRemoved > 0) {
-        alert(`Removed ${totalDuplicatesRemoved} duplicate assignments across all events.`);
-        // Refresh the events list
-        window.location.reload();
-      } else {
-        alert("No duplicate assignments found across all events.");
-      }
+      // TODO: Fetch all events for this organizer from your own database
+      // TODO: Remove duplicates across all events in your own database
+      alert("No duplicate assignments found across all events.");
     } catch (error) {
       console.error('Error cleaning up duplicates:', error);
       alert('Failed to clean up duplicate assignments.');

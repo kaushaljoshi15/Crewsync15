@@ -28,8 +28,6 @@ import {
 import Link from 'next/link'
 import { useAuth } from '@/components/AuthProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Dialog } from '@headlessui/react';
 import { useRouter } from 'next/navigation';
 import { formatTimeRange } from '@/lib/utils';
@@ -104,7 +102,7 @@ export default function OrganizerDashboardPage() {
     e.preventDefault();
     if (!editEvent) return;
     setLoadingAction(true);
-    await updateDoc(doc(db, 'events', editEvent.id), editForm);
+    // TODO: Update event in your own database
     setShowEditModal(false);
     setLoadingAction(false);
   };
@@ -115,41 +113,20 @@ export default function OrganizerDashboardPage() {
   const handleDeleteEvent = async () => {
     if (!deleteId) return;
     setLoadingAction(true);
-    await deleteDoc(doc(db, 'events', deleteId));
+    // TODO: Delete event from your own database
     setShowDeleteModal(false);
     setDeleteId(null);
     setLoadingAction(false);
   };
 
-  // Simulate real-time updates
+  // TODO: Fetch data from your own database
   useEffect(() => {
     if (!user) return;
-    // Fetch events for this organizer
-    getDocs(query(collection(db, 'events'), where('createdBy', '==', user.uid))).then(eventSnap => {
-      const eventList = eventSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setEvents(eventList);
-      const eventIds = eventList.map(e => e.id);
-      if (eventIds.length === 0) {
-        setShifts([]);
-        setStats({ totalEvents: 0, totalVolunteers: 0, totalShifts: 0 });
-        return;
-      }
-      // Listen for real-time shifts updates
-      const shiftsQuery = query(collection(db, 'shifts'), where('eventId', 'in', eventIds));
-      const unsubShifts = onSnapshot(shiftsQuery, shiftSnap => {
-        const shiftList = shiftSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-        setShifts(shiftList);
-        // Fetch volunteers for these events
-        getDocs(query(collection(db, 'volunteers'), where('eventId', 'in', eventIds))).then(volSnap => {
-          setStats({
-            totalEvents: eventList.length,
-            totalVolunteers: volSnap.docs.length,
-            totalShifts: shiftList.length
-          });
-        });
-      });
-      return () => unsubShifts();
-    });
+    // TODO: Fetch events for this organizer from your own database
+    // TODO: Fetch shifts and volunteers from your own database
+    setEvents([]);
+    setShifts([]);
+    setStats({ totalEvents: 0, totalVolunteers: 0, totalShifts: 0 });
   }, [user]);
 
   return (

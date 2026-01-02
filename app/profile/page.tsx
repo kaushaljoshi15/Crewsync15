@@ -34,8 +34,6 @@ import {
 import { useAuth } from '@/components/AuthProvider'
 import { useTheme } from '@/components/ThemeProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { doc, updateDoc, getDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 
@@ -96,10 +94,8 @@ export default function ProfilePage() {
     if (!user) return
     
     try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid))
-      if (userDoc.exists()) {
-        const data = userDoc.data()
-        setProfile({
+      // TODO: Fetch user profile from your own database
+      setProfile({
           uid: user.uid,
           email: user.email || '',
           name: data.name || user.displayName || '',
@@ -125,10 +121,7 @@ export default function ProfilePage() {
     
     setIsLoading(true)
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        name: profile.name,
-        phone: profile.phone,
-        location: profile.location,
+      // TODO: Update user profile in your own database
         bio: profile.bio,
         avatar: profile.avatar,
         preferences: profile.preferences

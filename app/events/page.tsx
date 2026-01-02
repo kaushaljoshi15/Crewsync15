@@ -27,8 +27,6 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { doc, collection, addDoc, updateDoc, deleteDoc, getDocs, getDoc, query, where, Timestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
@@ -103,17 +101,8 @@ export default function EventsPage() {
   const loadEvents = async () => {
     setIsLoading(true)
     try {
-      const eventsSnapshot = await getDocs(collection(db, 'events'))
-      const eventsData = eventsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        volunteers: doc.data().volunteers || [],
-        organizers: doc.data().organizers || [],
-        category: doc.data().category || 'General',
-        isArchived: doc.data().isArchived || false,
-        createdAt: doc.data().createdAt?.toDate() || new Date()
-      })) as Event[]
-      setEvents(eventsData)
+      // TODO: Load events from your own database
+      setEvents([])
     } catch (error) {
       toast.error('Failed to load events')
       console.error('Error loading events:', error)
@@ -124,12 +113,8 @@ export default function EventsPage() {
 
   const loadUsers = async () => {
     try {
-      const usersSnapshot = await getDocs(collection(db, 'users'))
-      const usersData = usersSnapshot.docs.map(doc => ({
-        uid: doc.id,
-        ...doc.data()
-      })) as User[]
-      setUsers(usersData)
+      // TODO: Load users from your own database
+      setUsers([])
     } catch (error) {
       console.error('Error loading users:', error)
     }
@@ -145,12 +130,7 @@ export default function EventsPage() {
 
     setIsLoading(true)
     try {
-      await addDoc(collection(db, 'events'), {
-        ...newEvent,
-        organizers: [user.uid],
-        volunteers: [],
-        createdAt: new Date()
-      })
+      // TODO: Create event in your own database
       toast.success('Event created successfully')
       setShowCreateModal(false)
       setNewEvent({
@@ -177,15 +157,7 @@ export default function EventsPage() {
 
     setIsLoading(true)
     try {
-      await updateDoc(doc(db, 'events', selectedEvent.id), {
-        title: selectedEvent.title,
-        description: selectedEvent.description,
-        startDate: selectedEvent.startDate,
-        endDate: selectedEvent.endDate,
-        location: selectedEvent.location,
-        status: selectedEvent.status,
-        poster: selectedEvent.poster
-      })
+      // TODO: Update event in your own database
       toast.success('Event updated successfully')
       setShowEditModal(false)
       setSelectedEvent(null)
@@ -209,7 +181,7 @@ export default function EventsPage() {
     }
 
     try {
-      await deleteDoc(doc(db, 'events', eventId))
+      // TODO: Delete event from your own database
       toast.success('Event deleted successfully')
     } catch (error) {
       // Revert optimistic update on error
@@ -232,14 +204,10 @@ export default function EventsPage() {
       return
     }
     
-    // For volunteers, also check if they're already assigned in the volunteers collection
+    // TODO: For volunteers, check if they're already assigned in your own database
     if (role === 'volunteer') {
       try {
-        const volunteerSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", eventId), where("userId", "==", userId)))
-        if (!volunteerSnap.empty) {
-          toast.error("This volunteer is already assigned to this event")
-          return
-        }
+        // TODO: Check volunteer assignment in your own database
       } catch (error) {
         console.error('Error checking volunteer assignment:', error)
         toast.error('Failed to check volunteer assignment')
@@ -256,30 +224,9 @@ export default function EventsPage() {
     setEvents(updatedEvents)
 
     try {
-      const eventRef = doc(db, 'events', eventId)
-      const eventDoc = await getDoc(eventRef)
-      
-      if (eventDoc.exists()) {
-        const eventData = eventDoc.data() as Event
-        const currentUsers = eventData[field] || []
-        
-        await updateDoc(eventRef, {
-          [field]: [...currentUsers, userId]
-        })
-        
-        // If assigning as volunteer, also add to volunteers collection
-        if (role === 'volunteer') {
-          await addDoc(collection(db, "volunteers"), {
-            eventId: eventId,
-            userId: userId,
-            shiftId: "",
-            status: "assigned",
-            assignedAt: Timestamp.now()
-          })
-        }
-        
-        toast.success(`User assigned as ${role}`)
-      }
+      // TODO: Update event in your own database to assign user
+      // TODO: If assigning as volunteer, also add to volunteers in your own database
+      toast.success(`User assigned as ${role}`)
     } catch (error) {
       // Revert optimistic update on error
       loadEvents()
@@ -304,32 +251,9 @@ export default function EventsPage() {
     }
 
     try {
-      const eventRef = doc(db, 'events', eventId)
-      const eventDoc = await getDoc(eventRef)
-      
-      if (eventDoc.exists()) {
-        const eventData = eventDoc.data() as Event
-        const currentUsers = eventData[field] || []
-        
-        await updateDoc(eventRef, {
-          [field]: currentUsers.filter(id => id !== userId)
-        })
-        
-        // If removing a volunteer, also remove from volunteers collection
-        if (role === 'volunteer') {
-          try {
-            const volunteerSnap = await getDocs(query(collection(db, "volunteers"), where("eventId", "==", eventId), where("userId", "==", userId)))
-            volunteerSnap.forEach(async (volunteerDoc) => {
-              await deleteDoc(doc(db, "volunteers", volunteerDoc.id))
-            })
-          } catch (error) {
-            console.error('Error removing volunteer from collection:', error)
-            // Don't fail the entire operation if this fails
-          }
-        }
-        
-        toast.success(`User removed as ${role}`)
-      }
+      // TODO: Update event in your own database to remove user
+      // TODO: If removing a volunteer, also remove from volunteers in your own database
+      toast.success(`User removed as ${role}`)
     } catch (error) {
       // Revert optimistic update on error
       loadEvents()
@@ -369,7 +293,7 @@ export default function EventsPage() {
         createdAt: new Date()
       }
 
-      await addDoc(collection(db, 'events'), clonedEvent)
+      // TODO: Save cloned event to your own database
       toast.success('Event cloned successfully')
       setShowCloneModal(false)
       setSelectedEventForClone(null)
@@ -396,10 +320,7 @@ export default function EventsPage() {
     }
 
     try {
-      await updateDoc(doc(db, 'events', eventId), {
-        isArchived: true,
-        status: 'archived'
-      })
+      // TODO: Archive event in your own database
       toast.success('Event archived successfully')
     } catch (error) {
       // Revert optimistic update on error
@@ -423,10 +344,7 @@ export default function EventsPage() {
     }
 
     try {
-      await updateDoc(doc(db, 'events', eventId), {
-        isArchived: false,
-        status: 'upcoming'
-      })
+      // TODO: Unarchive event in your own database
       toast.success('Event unarchived successfully')
     } catch (error) {
       // Revert optimistic update on error

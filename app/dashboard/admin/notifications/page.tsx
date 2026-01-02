@@ -1,8 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { collection, getDocs } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import toast from 'react-hot-toast'
 import { X } from 'lucide-react'
@@ -18,10 +16,9 @@ export default function AdminNotificationsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const eventsSnap = await getDocs(collection(db, 'events'))
-      const shiftsSnap = await getDocs(collection(db, 'shifts'))
-      setEvents(eventsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
-      setShifts(shiftsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+      // TODO: Fetch events and shifts from your own database
+      setEvents([])
+      setShifts([])
     }
     fetchData()
   }, [])

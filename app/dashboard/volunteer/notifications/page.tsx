@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, orderBy, onSnapshot } from "firebase/firestore";
 import { Bell } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/components/AuthProvider";
@@ -29,26 +27,8 @@ export default function VolunteerNotificationsPage() {
     if (!user) return;
     setIsLoading(true);
     // Real-time listeners for notifications
-    const userQ = query(collection(db, "notifications"), where("userId", "==", user.uid));
-    const globalQ = query(collection(db, "notifications"), where("userId", "==", "all"));
-    const unsubUser = onSnapshot(userQ, (userSnap) => {
-      const userNotifs = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Notification[];
-      setNotifications(prev => {
-        // Combine with global notifications if already loaded
-        const globalNotifs = prev.filter(n => n.userId === 'all');
-        const allNotifs = [...userNotifs, ...globalNotifs].sort((a, b) => {
-          const aTime = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-          const bTime = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-          return bTime - aTime;
-        });
-        return allNotifs;
-      });
-      setIsLoading(false);
-    });
-    const unsubGlobal = onSnapshot(globalQ, (globalSnap) => {
-      const globalNotifs = globalSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Notification[];
-      setNotifications(prev => {
-        // Combine with user notifications if already loaded
+    // TODO: Fetch notifications from your own database
+    setIsLoading(false);
         const userNotifs = prev.filter(n => n.userId !== 'all');
         const allNotifs = [...userNotifs, ...globalNotifs].sort((a, b) => {
           const aTime = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;

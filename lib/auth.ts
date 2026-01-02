@@ -1,57 +1,35 @@
-import { auth } from './firebase'
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut,
-  GoogleAuthProvider,
-  signInWithPopup,
-  onAuthStateChanged,
-  User
-} from 'firebase/auth'
-import performance from './performance'
+// Authentication utilities - replace with your own authentication system
+// These are placeholder functions that need to be implemented with your own auth system
 
-export const googleProvider = new GoogleAuthProvider()
+export interface User {
+  uid: string
+  email: string | null
+  displayName: string | null
+  role?: string
+}
 
 export async function signInWithGoogle() {
-  try {
-    performance.trackAuthEvent('login')
-    const result = await signInWithPopup(auth, googleProvider)
-    return { user: result.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
-  }
+  // TODO: Implement Google sign-in with your own authentication system
+  return { user: null, error: 'Authentication not implemented' }
 }
 
 export async function signInWithEmail(email: string, password: string) {
-  try {
-    performance.trackAuthEvent('login')
-    const result = await signInWithEmailAndPassword(auth, email, password)
-    return { user: result.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
-  }
+  // TODO: Implement email/password sign-in with your own authentication system
+  return { user: null, error: 'Authentication not implemented' }
 }
 
 export async function signUpWithEmail(email: string, password: string) {
-  try {
-    performance.trackAuthEvent('signup')
-    const result = await createUserWithEmailAndPassword(auth, email, password)
-    return { user: result.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
-  }
+  // TODO: Implement email/password sign-up with your own authentication system
+  return { user: null, error: 'Authentication not implemented' }
 }
 
 export async function signOutUser() {
-  try {
-    performance.trackAuthEvent('logout')
-    await signOut(auth)
-    return { error: null }
-  } catch (error: any) {
-    return { error: error.message }
-  }
+  // TODO: Implement sign-out with your own authentication system
+  return { error: null }
 }
 
 export function onAuthChange(callback: (user: User | null) => void) {
-  return onAuthStateChanged(auth, callback)
-} 
+  // TODO: Implement auth state change listener with your own authentication system
+  // This should return an unsubscribe function
+  return () => {}
+}

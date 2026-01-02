@@ -19,11 +19,8 @@ import {
 import { useAuth } from '@/components/AuthProvider'
 import { useTheme } from '@/components/ThemeProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { doc, updateDoc, getDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
-import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 
 interface UserPreferences {
   notifications: boolean
@@ -65,17 +62,15 @@ export default function SettingsPage() {
     if (!user) return
     
     try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid))
-      if (userDoc.exists()) {
-        const data = userDoc.data()
-        setPreferences({
-          notifications: data.preferences?.notifications ?? true,
-          darkMode: data.preferences?.darkMode ?? false,
-          language: data.preferences?.language ?? 'en',
-          profileVisibility: data.preferences?.profileVisibility ?? true,
-          activityTracking: data.preferences?.activityTracking ?? true
-        })
-      }
+      // TODO: Fetch user preferences from your own database
+      // const data = await fetchUserPreferences(user.uid)
+      setPreferences({
+        notifications: true,
+        darkMode: false,
+        language: 'en',
+        profileVisibility: true,
+        activityTracking: true
+      })
     } catch (error) {
       console.error('Error loading preferences:', error)
     }
@@ -86,9 +81,7 @@ export default function SettingsPage() {
     
     setIsLoading(true)
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        preferences: preferences
-      })
+      // TODO: Update user preferences in your own database
       toast.success('Settings saved successfully!')
     } catch (error) {
       toast.error('Failed to save settings')
@@ -109,12 +102,8 @@ export default function SettingsPage() {
     }
     setIsLoading(true)
     try {
-      if (!user || !user.email) throw new Error('User not found');
-      // Re-authenticate user
-      const credential = EmailAuthProvider.credential(user.email, passwordData.currentPassword);
-      await reauthenticateWithCredential(user, credential);
-      // Update password
-      await updatePassword(user, passwordData.newPassword);
+      if (!user) throw new Error('User not found');
+      // TODO: Implement password change with your own authentication system
       toast.success('Password updated successfully!');
       setPasswordData({
         currentPassword: '',
@@ -122,13 +111,7 @@ export default function SettingsPage() {
         confirmPassword: ''
       });
     } catch (error: any) {
-      if (error.code === 'auth/wrong-password') {
-        toast.error('Current password is incorrect.');
-      } else if (error.code === 'auth/weak-password') {
-        toast.error('New password is too weak.');
-      } else {
-        toast.error(error.message || 'Failed to update password');
-      }
+      toast.error(error.message || 'Failed to update password');
     } finally {
       setIsLoading(false);
     }

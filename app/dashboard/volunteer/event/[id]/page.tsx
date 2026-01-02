@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { Calendar, MapPin, Users, Clock, CheckCircle, Crown, Bell } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
@@ -23,30 +21,16 @@ export default function VolunteerEventDetailsPage() {
     setIsLoading(true);
     // Fetch event details
     const fetchEvent = async () => {
-      const eventDoc = await getDoc(doc(db, "events", id as string));
-      if (eventDoc.exists()) {
-        setEvent({ id: eventDoc.id, ...eventDoc.data() });
-      }
+      // TODO: Fetch event from your own database
+      setEvent(null);
     };
-    // Fetch volunteer status for this event
+    // TODO: Fetch volunteer status from your own database
     const fetchVolunteerStatus = async () => {
-      const vQuery = query(collection(db, "volunteers"), where("eventId", "==", id), where("userId", "==", user.uid));
-      const vSnap = await getDocs(vQuery);
-      if (!vSnap.empty) {
-        setVolunteerStatus(vSnap.docs[0].data().status || "");
-      }
+      setVolunteerStatus("");
     };
-    // Fetch shifts for this event and user
+    // TODO: Fetch shifts from your own database
     const fetchShifts = async () => {
-      const sQuery = query(collection(db, "shifts"), where("eventId", "==", id));
-      const sSnap = await getDocs(sQuery);
-      const allShifts = sSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Filter shifts assigned to this user
-      const myShifts = allShifts.filter((shift: any) => {
-        if (!shift.assignedVolunteers) return false;
-        return shift.assignedVolunteers.includes(user.uid);
-      });
-      setShifts(myShifts);
+      setShifts([]);
     };
     // Fetch notifications for this event and user (optional, mock for now)
     const fetchNotifications = async () => {

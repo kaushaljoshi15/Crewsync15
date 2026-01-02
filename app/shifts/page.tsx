@@ -19,8 +19,6 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { doc, collection, addDoc, updateDoc, deleteDoc, getDocs, getDoc, query, where, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation';
 
@@ -69,11 +67,9 @@ export default function ShiftsPage() {
       return;
     }
     if (user.role === 'volunteer') {
-      // Real-time listener for shifts assigned to this volunteer
-      const q = query(collection(db, 'shifts'), where('assignedVolunteers', 'array-contains', user.uid));
-      const unsubscribe = onSnapshot(q, (snap) => {
-        const shiftList: Shift[] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Shift));
-        setShifts(shiftList);
+      // TODO: Fetch shifts assigned to this volunteer from your own database
+      // TODO: Set up real-time listener with your own database
+      setShifts([]);
         setIsLoading(false);
       });
       return () => unsubscribe();

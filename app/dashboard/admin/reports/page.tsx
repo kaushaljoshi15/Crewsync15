@@ -1,10 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
-import { storage } from '@/lib/firebase'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db } from '@/lib/firebase'
 import { Download, X } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import toast from 'react-hot-toast'
@@ -27,12 +23,10 @@ export default function AdminReportsPage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
-      const eventsSnap = await getDocs(collection(db, 'events'))
-      const shiftsSnap = await getDocs(collection(db, 'shifts'))
-      const usersSnap = await getDocs(collection(db, 'users'))
-      setEvents(eventsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
-      setShifts(shiftsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
-      setUsers(usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() })))
+      // TODO: Fetch events, shifts, and users from your own database
+      setEvents([])
+      setShifts([])
+      setUsers([])
       setLoading(false)
     }
     fetchData()
@@ -65,8 +59,8 @@ export default function AdminReportsPage() {
   // Fetch reports for dashboard update
   const fetchReports = async () => {
     try {
-      const reportsSnap = await getDocs(collection(db, 'reports'))
-      setReports(reportsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+      // TODO: Fetch reports from your own database
+      setReports([])
     } catch {}
   }
 
@@ -85,19 +79,10 @@ export default function AdminReportsPage() {
     a.download = filename
     a.click()
     window.URL.revokeObjectURL(url)
-    // Upload to Firebase Storage and add report to Firestore
+    // TODO: Upload report to your own storage system and save to your database
     try {
-      const storageRef = ref(storage, `reports/${Date.now()}-${filename}`)
-      await uploadBytes(storageRef, blob)
-      const downloadURL = await getDownloadURL(storageRef)
-      await addDoc(collection(db, 'reports'), {
-        title: `${reportType} CSV Report`,
-        type: 'CSV',
-        size: `${(blob.size / 1024 / 1024).toFixed(1)} MB`,
-        date: serverTimestamp(),
-        status: 'completed',
-        url: downloadURL
-      })
+      // TODO: Upload blob to your own storage system
+      // TODO: Save report metadata to your own database
       toast.success('Report generated and uploaded!')
       await fetchReports()
     } catch (e) {

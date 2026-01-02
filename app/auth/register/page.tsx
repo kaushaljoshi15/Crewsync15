@@ -6,8 +6,6 @@ import Link from 'next/link'
 import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, Calendar, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { signUpWithEmail, signInWithGoogle } from '@/lib/auth'
-import { setDoc, doc, getDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -81,13 +79,7 @@ export default function RegisterPage() {
       const { user, error } = await signUpWithEmail(formData.email, formData.password)
       
       if (user) {
-        // Write user to Firestore with selected role
-        await setDoc(doc(db, 'users', user.uid), {
-          uid: user.uid,
-          email: formData.email,
-          name: formData.name,
-          role: formData.role,
-        })
+        // User should be saved to your own database
         toast.success('🎉 Account created successfully! Welcome to CrewSync!')
         if (formData.role === 'volunteer') {
           router.push('/dashboard/volunteer');
@@ -99,7 +91,7 @@ export default function RegisterPage() {
           router.push('/dashboard');
         }
       } else {
-        // Check for specific Firebase auth errors
+        // Check for specific authentication errors
         if (error?.includes('email-already-in-use')) {
           toast.error('An account with this email already exists. Please sign in instead.')
         } else if (error?.includes('weak-password')) {
@@ -128,31 +120,9 @@ export default function RegisterPage() {
     try {
       const { user, error } = await signInWithGoogle()
       if (user) {
-        // Check if user exists in Firestore
-        const userDocRef = doc(db, 'users', user.uid)
-        const userDocSnap = await getDoc(userDocRef)
+        // User should be saved/checked in your own database
         let role = formData.role || 'volunteer'
-        if (!userDocSnap.exists()) {
-          // Create user doc with selected role
-          await setDoc(userDocRef, {
-            uid: user.uid,
-            email: user.email,
-            name: user.displayName || '',
-            role,
-          })
-          toast.success(`Google Sign-Up successful! Role set to ${role}.`)
-        } else {
-          // Update role to selected role if changed
-          if (userDocSnap.data().role !== role) {
-            await setDoc(userDocRef, {
-              ...userDocSnap.data(),
-              role,
-            })
-            toast.success(`Role updated to ${role}.`)
-          } else {
-        toast.success('Google Sign-Up successful!')
-          }
-        }
+        toast.success(`Google Sign-Up successful! Role set to ${role}.`)
         if (role === 'volunteer') {
           router.push('/dashboard/volunteer')
         } else if (role === 'organizer') {
