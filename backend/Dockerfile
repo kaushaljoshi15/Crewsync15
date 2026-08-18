@@ -9,23 +9,22 @@ FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
-# Install ca-certificates and git for downloading private/secure packages
+# Install ca-certificates and git
 RUN apk add --no-cache ca-certificates git
 
-# Cache dependencies
-COPY go.mod go.sum* ./
-RUN go mod download
-
-# Copy source code
+# Copy all source files
 COPY . .
 
-# Compile statically linked binary (zero CGO dependency for ultimate portability)
+# Ensure all dependencies and transitive hashes are tidied and cached
+RUN go mod tidy && go mod download
+
+# Compile statically linked binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-w -s" \
     -o /app/bin/server \
     ./cmd/server/main.go
 
-# Stage 2: Ultra-minimal Scratch/Alpine Production Image
+# Stage 2: Ultra-minimal Alpine Production Image (< 20MB)
 FROM alpine:3.20 AS runner
 
 WORKDIR /app
