@@ -1,20 +1,19 @@
-'use client'; // Required for forms in Next.js App Router
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { setToken } from "@/lib/api";
+import { Lock, Mail, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 
-// Note: Replace with actual client ID
-const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'your-google-client-id';
+const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "your-google-client-id";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,30 +21,34 @@ export default function LoginPage() {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      setLoading(true);
+      const res = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: credentialResponse.credential }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Google login failed');
+      if (!res.ok) throw new Error(data.error || "Google login failed");
 
-      localStorage.setItem('token', data.token);
-      if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/dashboard'); 
+      setToken(data.token);
+      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -53,166 +56,165 @@ export default function LoginPage() {
 
       if (!res.ok) {
         if (data && data.requiresVerification) {
-           router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
-           return;
+          router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
+          return;
         }
-        if (data) {
-           throw new Error(data.error || 'Invalid credentials');
-        } else {
-           throw new Error('Something went wrong during login');
-        }
+        throw new Error(data?.error || "Invalid credentials");
       }
 
-      // 1. Store the JWT token
-      localStorage.setItem('token', data.token);
-      
-      // 2. Strict nested check for user object before storing
-      if (data) {
-        if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
+      setToken(data.token);
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      // 3. Redirect to the dashboard
-      router.push('/dashboard'); 
-      
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <GoogleOAuthProvider clientId={CLIENT_ID}>
-      <div className="flex min-h-screen w-full bg-white font-sans text-slate-900">
+      <div className="flex min-h-screen w-full bg-slate-950 font-sans text-slate-100 selection:bg-cyan-500 selection:text-slate-950">
         
-        {/* Left Panel: Branding & Marketing */}
-        <div className="hidden lg:flex w-1/2 flex-col justify-between bg-slate-900 p-12 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+        {/* Left Visual Architecture Panel */}
+        <div className="hidden lg:flex w-1/2 flex-col justify-between p-12 relative overflow-hidden bg-slate-900/60 border-r border-slate-800">
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px] -z-10 pointer-events-none" />
           
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 text-white">
-              <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                <span className="font-bold text-lg leading-none">C</span>
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 via-blue-600 to-cyan-400 flex items-center justify-center font-bold text-sm text-white shadow-lg shadow-indigo-500/25">
+              CS
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white">CrewSync</span>
+          </div>
+
+          <div className="max-w-md">
+            <span className="text-xs font-mono text-cyan-400 uppercase tracking-wider font-semibold">
+              Mission-Critical Operations
+            </span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-white mt-2 mb-4 leading-snug">
+              Secure access to your distributed crew dashboard.
+            </h1>
+            <p className="text-sm text-slate-400 leading-relaxed mb-6">
+              Authenticated with Bcrypt cryptographic hashing, stateless JWT session tokens, and sliding-window Redis brute-force protection.
+            </p>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <span>Distributed Redis Token-Bucket Rate Limiter Active</span>
               </div>
-              <span className="text-2xl font-bold tracking-tight">CrewSync</span>
+              <div className="flex items-center gap-2.5">
+                <Zap className="h-4 w-4 text-cyan-400" />
+                <span>Sub-millisecond WebSocket Hub live synchronization</span>
+              </div>
             </div>
           </div>
 
-          <div className="relative z-10 max-w-lg">
-            <h1 className="text-4xl font-semibold tracking-tight text-white mb-6 leading-snug">
-              Streamline your event management workflow.
-            </h1>
-            <p className="text-lg text-slate-400">
-              Log in to manage your events, coordinate with volunteers, and oversee administrative tasks from one unified dashboard.
-            </p>
-          </div>
-
-          <div className="relative z-10 text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} CrewSync. All rights reserved.
+          <div className="text-xs text-slate-600 font-mono">
+            &copy; {new Date().getFullYear()} CrewSync Distributed Architecture.
           </div>
         </div>
 
-        {/* Right Panel: Functional Login Form */}
-        <div className="flex w-full lg:w-1/2 flex-col justify-center items-center p-8 sm:p-12 md:p-24 bg-slate-50 lg:bg-white">
-          
+        {/* Right Form Panel */}
+        <div className="flex w-full lg:w-1/2 flex-col justify-center items-center p-8 sm:p-12 md:p-20 relative">
           <div className="w-full max-w-sm">
-            <div className="flex lg:hidden items-center gap-2 mb-8 text-slate-900">
-              <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                <span className="font-bold text-lg text-white leading-none">C</span>
+            
+            <div className="flex lg:hidden items-center gap-2.5 mb-8">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 via-blue-600 to-cyan-400 flex items-center justify-center font-bold text-sm text-white shadow-lg">
+                CS
               </div>
-              <span className="text-2xl font-bold tracking-tight">CrewSync</span>
+              <span className="text-xl font-bold tracking-tight text-white">CrewSync</span>
             </div>
 
             <div className="mb-8">
-              <h2 className="text-2xl font-bold tracking-tight mb-2">Welcome back</h2>
-              <p className="text-slate-500 text-sm">Please login with Google or your Email to continue.</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">Welcome Back</h2>
+              <p className="text-xs sm:text-sm text-slate-400">Sign in to your crew workspace to continue.</p>
             </div>
 
-            {/* Error State */}
             {error && (
-              <div className="mb-6 rounded-lg bg-red-50 p-4 border border-red-200">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                  </div>
-                </div>
+              <div className="mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 p-4 text-rose-300 text-xs flex items-start gap-3">
+                <div className="h-2 w-2 rounded-full bg-rose-400 mt-1 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
-            {/* Google OAuth Button */}
+            {/* Google OAuth */}
             <div className="mb-6 flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                onError={() => setError('Google sign-in failed')}
+                onError={() => setError("Google sign-in failed")}
+                theme="filled_black"
+                shape="pill"
               />
             </div>
 
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-300"></div>
+                <div className="w-full border-t border-slate-800" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-slate-50 lg:bg-white px-2 text-slate-500">Or continue with email</span>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-slate-950 px-3 text-slate-500 font-mono">or email credentials</span>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Email address
+                <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-slate-400" />
+                  Email Address
                 </label>
                 <input
-                  id="email"
                   type="email"
                   name="email"
                   required
-                  className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm transition-colors"
-                  onChange={handleChange}
                   value={formData.email}
-                  placeholder="you@example.com"
+                  onChange={handleChange}
+                  placeholder="coordinator@example.com"
+                  className="w-full rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 text-slate-400" />
                   Password
                 </label>
                 <input
-                  id="password"
                   type="password"
                   name="password"
                   required
-                  className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm transition-colors"
-                  onChange={handleChange}
                   value={formData.password}
-                  placeholder="Enter Password"
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition"
                 />
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full flex justify-center items-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors active:scale-[0.98]"
+                  disabled={loading}
+                  className="w-full flex justify-center items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-blue-500/20 transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
                 >
-                  Login
+                  {loading ? "Authenticating..." : "Sign In to Workspace"}
+                  <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </form>
 
-            <p className="mt-8 text-center text-sm text-slate-500">
-              Don't have an account?{' '}
-              <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-500 hover:underline underline-offset-4 transition-colors">
-                Register
+            <p className="mt-8 text-center text-xs text-slate-400">
+              Don't have an account?{" "}
+              <Link href="/register" className="font-semibold text-cyan-400 hover:text-cyan-300 underline underline-offset-4">
+                Register here
               </Link>
             </p>
 
           </div>
         </div>
+
       </div>
     </GoogleOAuthProvider>
   );

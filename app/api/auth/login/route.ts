@@ -41,9 +41,15 @@ export async function POST(request: Request) {
 
     // 4. Generate JWT Token (The "Session")
     const token = jwt.sign(
-      { userId: user.id, role: user.role }, // Data inside the token
-      process.env.JWT_SECRET!,              // Your Secret Key
-      { expiresIn: '1d' }                   // Token lasts for 1 day
+      { 
+        user_id: user.id, 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role,
+        sub: String(user.id)
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: '72h' }
     );
 
     // 5. Send success response with token

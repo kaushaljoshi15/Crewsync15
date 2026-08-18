@@ -55,9 +55,15 @@ export async function POST(request: Request) {
 
     // 4. Generate local JWT session
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { 
+        user_id: user.id, 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role,
+        sub: String(user.id)
+      },
       JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '72h' }
     );
 
     return NextResponse.json(

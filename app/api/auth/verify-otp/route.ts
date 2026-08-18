@@ -46,9 +46,15 @@ export async function POST(request: Request) {
 
     // 5. Generate JWT token to immediately log them in
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { 
+        user_id: user.id, 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role,
+        sub: String(user.id)
+      },
       JWT_SECRET,
-      { expiresIn: '2h' }
+      { expiresIn: '72h' }
     );
 
     return NextResponse.json(

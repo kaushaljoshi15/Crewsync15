@@ -26,9 +26,10 @@ type AuthService interface {
 }
 
 type CustomClaims struct {
-	UserID int64  `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID    int64  `json:"user_id"`
+	AltUserID int64  `json:"userId"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -208,6 +209,15 @@ func (s *authService) ValidateToken(tokenStr string) (*CustomClaims, error) {
 	}
 
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+		if claims.UserID == 0 && claims.AltUserID != 0 {
+			claims.UserID = claims.AltUserID
+		}
+		if claims.UserID == 0 && claims.Subject != "" {
+			var id int64
+			if _, err := fmt.Sscanf(claims.Subject, "%d", &id); err == nil && id > 0 {
+				claims.UserID = id
+			}
+		}
 		return claims, nil
 	}
 
