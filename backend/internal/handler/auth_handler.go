@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/kaushaljoshi15/crewsync-backend/internal/domain"
 	"github.com/kaushaljoshi15/crewsync-backend/internal/repository"

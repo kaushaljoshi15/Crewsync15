@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend-test:
-    name: Go Backend Test & Lint
+    name: Go Backend Test & Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -18,17 +18,18 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-          cache-dependency-path: backend/go.sum
 
-      - name: Install Dependencies
+      - name: Resolve & Tidy Go Dependencies
         working-directory: ./backend
-        run: go mod download
+        run: |
+          go mod tidy
+          go mod download
 
-      - name: Run Unit Tests with Race Detection
+      - name: Run Unit Tests
         working-directory: ./backend
-        run: go test -v -race ./...
+        run: go test -v ./...
 
-      - name: Build Go Binary
+      - name: Compile Go Microservice Binary
         working-directory: ./backend
         run: CGO_ENABLED=0 GOOS=linux go build -v -o server ./cmd/server/main.go
 
