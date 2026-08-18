@@ -72,12 +72,17 @@ services:
     container_name: crewsync_frontend
     restart: unless-stopped
     environment:
+      DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/crewsync?sslmode=disable
+      JWT_SECRET: super-secure-jwt-production-secret-faang-ready
       NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
       NEXT_PUBLIC_WS_URL: ws://localhost:8080/ws
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
     networks:
       - crewsync_net
 
