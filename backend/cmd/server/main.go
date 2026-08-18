@@ -73,7 +73,16 @@ func main() {
 	}))
 	app.Use(middleware.SetupCORS(cfg))
 
-	// Health Check & System Metrics
+	// Health Check & Root Info
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"service":   "CrewSync Distributed Real-Time Go API",
+			"status":    "online",
+			"health":    "/health",
+			"api_docs":  "/api/v1",
+			"frontend":  "http://localhost:3000",
+		})
+	})
 	app.Get("/health", healthHandler.HealthCheck)
 
 	// API Routes Group
