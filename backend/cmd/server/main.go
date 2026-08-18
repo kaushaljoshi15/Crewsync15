@@ -17,6 +17,7 @@ import (
 	"github.com/kaushaljoshi15/crewsync-backend/internal/repository"
 	"github.com/kaushaljoshi15/crewsync-backend/internal/service"
 	wsPkg "github.com/kaushaljoshi15/crewsync-backend/internal/websocket"
+	"github.com/kaushaljoshi15/crewsync-backend/internal/worker"
 )
 
 func main() {
